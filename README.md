@@ -4,7 +4,7 @@
 Running this script will delete the target RDS instance. Run at your own risk.
 
 ## Setup
-Copy aws_accounts.json.example to aws_accounts.json and setup appropriate assume role configurations in aws_accounts.json.example
+Copy aws_accounts.json.example to aws_accounts.json and setup appropriate assume role configurations in aws_accounts.json
 
 ## Usage
 
