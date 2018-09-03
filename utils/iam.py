@@ -27,13 +27,14 @@ def get_account_id_from_name(name):
     return account
 
 
-def get_client(account, service):
+def get_client(account, service, region='ap-southeast-2'):
     creds = assume_role(account)
     client = boto3.client(
         service_name=service,
         aws_access_key_id=creds['AccessKeyId'],
         aws_secret_access_key=creds['SecretAccessKey'],
-        aws_session_token=creds['SessionToken']
+        aws_session_token=creds['SessionToken'],
+        region_name=region
     )
     return client
 

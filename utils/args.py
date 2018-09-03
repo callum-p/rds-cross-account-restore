@@ -75,11 +75,11 @@ def setup_args():
     ssm = parser.add_argument_group('SSM')
     ssm.add_argument(
         '--ssm-security-group',
-        default='shared.DB_SG',
+        default='shared.LAPIS_DB_SG',
         help='Name of SSM parameter containing the SG for the DB')
     ssm.add_argument(
         '--ssm-db-password',
-        default='shared.DB_PASSWORD',
+        default='lapis.DB_PASSWORD',
         help='Name of SSM parameter containing the DB password')
     ssm.add_argument(
         '--ssm-subnet-group',
@@ -91,7 +91,7 @@ def setup_args():
         help='Name of SSM parameter containing the option group for the DB')
     ssm.add_argument(
         '--ssm-parameter-group',
-        default='shared.DB_PARAMETER_GROUP',
+        default='lapis.DB_PARAMETER_GROUP',
         help='Name of SSM parameter containing the parameter group for the DB')
 
     parser.add_argument(

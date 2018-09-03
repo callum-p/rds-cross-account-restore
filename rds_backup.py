@@ -21,31 +21,39 @@ def main():
     # create snapshot
     create_rds_snapshot(
         account=args.source_account,
+        region=args.source_region,
         db_instance=args.source_instance,
         snapshot_name=args.source_snapshot_name,
         wait=True)
 
     # share snapshot with dest account
     share_rds_snapshot(
-        args.source_account, args.source_snapshot_name, args.dest_account)
+        args.source_account,
+        args.source_region,
+        args.source_snapshot_name, args.dest_account)
 
     # if kms key provided in args, share with destination account temporarily
     source_kms_key = get_rds_instance_kms_key(
         account=args.source_account,
+        region=args.source_region,
         db_instance=args.source_instance)
-    if source_kms_key is not None:
-        share_kms_key(
-            account=args.source_account,
-            share_accounts=args.dest_account,
-            key=source_kms_key)
+
+    if args.source_account != args.dest_account:
+        if source_kms_key is not None:
+            share_kms_key(
+                account=args.source_account,
+                region=args.source_region,
+                share_accounts=args.dest_account,
+                key=source_kms_key)
 
     # copy snapshot to destination account
     copy_args = {
         'source_account': args.source_account,
+        'source_region': args.source_region,
         'dest_account': args.dest_account,
+        'region': args.dest_region,
         'snapshot_name': args.source_snapshot_name,
         'dest_snapshot_name': args.dest_snapshot_name,
-        'region': args.source_region,
         'wait': True
     }
     if args.dest_kms_key:
@@ -53,47 +61,56 @@ def main():
     copy_rds_snapshot(**copy_args)
 
     # unshare kms key now that snapshot is copied
-    if source_kms_key is not None:
-        unshare_kms_key(
-            account=args.source_account,
-            share_accounts=args.dest_account,
-            key=source_kms_key)
+    if args.source_account != args.dest_account:
+        if source_kms_key is not None:
+            unshare_kms_key(
+                account=args.source_account,
+                region=args.source_region,
+                share_accounts=args.dest_account,
+                key=source_kms_key)
 
     # run any SSM pre restore commands
     if len(args.pre_restore_ssm_command):
         for idx, command in enumerate(args.pre_restore_ssm_command):
             run_command(
                 args.dest_account,
+                args.dest_region,
                 command,
                 args.pre_restore_ssm_instance_names[idx])
 
     # restore snapshot in destination account
     restore_db_from_snapshot(
         account=args.dest_account,
+        region=args.dest_region,
         snapshot_name=args.dest_snapshot_name,
         db_instance=args.dest_instance,
         db_instance_type=args.instance_type,
-        subnet_group=get_parameter(args.dest_account, args.ssm_subnet_group),
+        subnet_group=get_parameter(args.dest_account, args.dest_region,
+                                   args.ssm_subnet_group),
         multi_az=args.multi_az,
         public=args.public,
-        option_group=get_parameter(args.dest_account, args.ssm_option_group),
+        option_group=get_parameter(args.dest_account, args.dest_region,
+                                   args.ssm_option_group),
         storage_type=args.storage_type,
         wait=True)
 
     # reset password, security groups etc
     modify_db_instance(
         account=args.dest_account,
+        region=args.dest_region,
         db_instance=args.dest_instance,
-        db_security_groups=get_parameter(args.dest_account,
+        db_security_groups=get_parameter(args.dest_account, args.dest_region,
                                          args.ssm_security_group),
-        master_password=get_parameter(args.dest_account, args.ssm_db_password),
-        parameter_group=get_parameter(args.dest_account,
+        master_password=get_parameter(args.dest_account, args.dest_region,
+                                      args.ssm_db_password),
+        parameter_group=get_parameter(args.dest_account, args.dest_region,
                                       args.ssm_parameter_group),
         wait=True)
 
     # reboot instance to apply final changes
     reboot_db_instance(
         account=args.dest_account,
+        region=args.dest_region,
         db_instance=args.dest_instance,
         wait=True)
 
@@ -102,6 +119,7 @@ def main():
         for idx, command in enumerate(args.post_restore_ssm_command):
             run_command(
                 args.dest_account,
+                args.dest_region,
                 command,
                 args.post_restore_ssm_instance_names[idx])
 

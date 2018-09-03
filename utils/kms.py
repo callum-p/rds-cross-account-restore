@@ -3,8 +3,8 @@ import json
 from hashlib import md5
 
 
-def get_key_id_from_alias(account, key_alias):
-    client = get_client(account, 'kms')
+def get_key_id_from_alias(account, region, key_alias):
+    client = get_client(account, 'kms', region)
     args = {}
     while True:
         response = client.list_aliases(**args)
@@ -23,12 +23,12 @@ def get_temporary_permissions_sid(share_accounts):
         md5(' '.join(share_accounts).encode('utf-8')).hexdigest()
 
 
-def share_kms_key(account, key, share_accounts):
-    client = get_client(account, 'kms')
+def share_kms_key(account, region, key, share_accounts):
+    client = get_client(account, 'kms', region)
     key_id = key
 
     if key.startswith('alias/'):
-        key_id = get_key_id_from_alias(account, key)
+        key_id = get_key_id_from_alias(account, region, key)
 
     response = client.get_key_policy(KeyId=key_id, PolicyName='default')
     key_policy = json.loads(response['Policy'])
@@ -86,12 +86,12 @@ def share_kms_key(account, key, share_accounts):
         raise(e)
 
 
-def unshare_kms_key(account, key, share_accounts):
-    client = get_client(account, 'kms')
+def unshare_kms_key(account, region, key, share_accounts):
+    client = get_client(account, 'kms', region)
     key_id = key
 
     if key.startswith('alias/'):
-        key_id = get_key_id_from_alias(account, key)
+        key_id = get_key_id_from_alias(account, region, key)
 
     response = client.get_key_policy(KeyId=key_id, PolicyName='default')
     key_policy = json.loads(response['Policy'])

@@ -3,13 +3,13 @@ import logging
 import time
 
 
-def get_parameter(account, parameter_name):
-    client = get_client(account, 'ssm')
+def get_parameter(account, region, parameter_name):
+    client = get_client(account, 'ssm', region)
     response = client.get_parameter(Name=parameter_name, WithDecryption=True)
     return response['Parameter']['Value']
 
 
-def wait_for_command(account, command_id, instances):
+def wait_for_command(account, region, command_id, instances):
     completions = 0
     completed_statuses = [
         'Success',
@@ -20,7 +20,7 @@ def wait_for_command(account, command_id, instances):
     while True:
         for instance in instances:
             status = get_command_invocation_status(
-                account, command_id, instance)
+                account, region, command_id, instance)
             if status in completed_statuses:
                 logging.warning(f'Command {command_id} finished on '
                                 f'{instance} with status {status}')
@@ -31,8 +31,8 @@ def wait_for_command(account, command_id, instances):
     logging.warning(f'Command {command_id} finished on all instances.')
 
 
-def run_command(account, command, instance_name):
-    client = get_client(account, 'ssm')
+def run_command(account, region, command, instance_name):
+    client = get_client(account, 'ssm', region)
     logging.warning(f'Running command {command} on instances with name '
                     f'{instance_name}')
     response = client.send_command(
@@ -42,13 +42,13 @@ def run_command(account, command, instance_name):
         }],
         DocumentName=command)
     command_id = response['Command']['CommandId']
-    instances = get_command_invocation_instances(account, command_id)
+    instances = get_command_invocation_instances(account, region, command_id)
     logging.warning(f'Waiting for command {command_id} to finish executing.')
-    wait_for_command(account, command_id, instances)
+    wait_for_command(account, region, command_id, instances)
 
 
-def get_command_invocation_instances(account, command_id):
-    client = get_client(account, 'ssm')
+def get_command_invocation_instances(account, region, command_id):
+    client = get_client(account, 'ssm', region)
     instances = []
     args = {
         'CommandId': command_id
@@ -64,8 +64,8 @@ def get_command_invocation_instances(account, command_id):
     return instances
 
 
-def get_command_invocation_status(account, command_id, instance_id):
-    client = get_client(account, 'ssm')
+def get_command_invocation_status(account, region, command_id, instance_id):
+    client = get_client(account, 'ssm', region)
     response = client.get_command_invocation(
         CommandId=command_id, InstanceId=instance_id)
     return response['Status']
