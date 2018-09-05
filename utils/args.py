@@ -103,24 +103,24 @@ def setup_args():
     pre = parser.add_argument_group('Pre Restore Commands')
     pre.add_argument(
         '--pre-restore-ssm-command',
-        nargs='+',
+        action='append',
         default=[],
         help='An SSM command to run before starting restore actions')
     pre.add_argument(
         '--pre-restore-ssm-instance-names',
-        nargs='+',
+        action='append',
         default=[],
         help='Name tag of instances to run pre-restore commands on')
 
     post = parser.add_argument_group('Post Restore Commands')
     post.add_argument(
         '--post-restore-ssm-command',
-        nargs='+',
+        action='append',
         default=[],
         help='An SSM command to run after restore actions have finished')
     post.add_argument(
         '--post-restore-ssm-instance-names',
-        nargs='+',
+        action='append',
         default=[],
         help='Name tag of instances to run post-restore commands on')
 
