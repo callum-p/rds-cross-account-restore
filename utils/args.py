@@ -75,7 +75,8 @@ def setup_args():
     ssm = parser.add_argument_group('SSM')
     ssm.add_argument(
         '--ssm-security-group',
-        default='shared.LAPIS_DB_SG',
+        action='append',
+        default=['shared.LAPIS_DB_SG'],
         help='Name of SSM parameter containing the SG for the DB')
     ssm.add_argument(
         '--ssm-db-password',
@@ -97,8 +98,7 @@ def setup_args():
     parser.add_argument(
         '--log-level',
         default='warning',
-        help='Log level'
-    )
+        help='Log level')
 
     pre = parser.add_argument_group('Pre Restore Commands')
     pre.add_argument(

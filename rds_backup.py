@@ -107,12 +107,14 @@ def main():
         wait=True)
 
     # reset password, security groups etc
+    db_security_groups = [
+        get_parameter(args.dest_account, args.dest_region, x) for sg in
+        args.ssm_security_group]
     modify_db_instance(
         account=args.dest_account,
         region=args.dest_region,
         db_instance=args.dest_instance,
-        db_security_groups=get_parameter(args.dest_account, args.dest_region,
-                                         args.ssm_security_group),
+        db_security_groups=db_security_groups,
         master_password=get_parameter(args.dest_account, args.dest_region,
                                       args.ssm_db_password),
         parameter_group=get_parameter(args.dest_account, args.dest_region,
