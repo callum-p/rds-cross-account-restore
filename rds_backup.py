@@ -8,6 +8,7 @@ from utils.rds import create_rds_snapshot, share_rds_snapshot, \
     reboot_db_instance, get_rds_instance_kms_key
 from utils.kms import share_kms_key, unshare_kms_key
 from utils.ssm import get_parameter, run_command
+from utils.asg import suspend_asg_action, resume_asg_action
 
 
 def main():
@@ -58,7 +59,9 @@ def main():
     }
     if args.dest_kms_key:
         copy_args['kms_key'] = args.dest_kms_key
-    copy_rds_snapshot(**copy_args)
+    if args.source_account != args.dest_account or \
+            args.source_region != args.dest_region:
+        copy_rds_snapshot(**copy_args)
 
     # unshare kms key now that snapshot is copied
     if args.source_account != args.dest_account:
@@ -68,6 +71,15 @@ def main():
                 region=args.source_region,
                 share_accounts=args.dest_account,
                 key=source_kms_key)
+
+    # run any asg pre restore suspend actions
+    if len(args.pre_restore_asg_suspend_action):
+        for idx, action in enumerate(args.pre_restore_asg_suspend_action):
+            suspend_asg_action(
+                args.dest_account,
+                args.dest_region,
+                action,
+                args.pre_restore_asg_name[idx])
 
     # run any SSM pre restore commands
     if len(args.pre_restore_ssm_command):
@@ -122,6 +134,15 @@ def main():
                 args.dest_region,
                 command,
                 args.post_restore_ssm_instance_names[idx])
+
+    # run any asg post restore resume actions
+    if len(args.post_restore_asg_resume_action):
+        for idx, action in enumerate(args.post_restore_asg_resume_action):
+            resume_asg_action(
+                args.dest_account,
+                args.dest_region,
+                action,
+                args.post_restore_asg_name[idx])
 
 
 if __name__ == '__main__':

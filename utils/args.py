@@ -111,6 +111,16 @@ def setup_args():
         action='append',
         default=[],
         help='Name tag of instances to run pre-restore commands on')
+    pre.add_argument(
+        '--pre-restore-asg-suspend-action',
+        action='append',
+        default=[],
+        help='An ASG action to suspend before starting restore actions')
+    pre.add_argument(
+        '--pre-restore-asg-name',
+        action='append',
+        default=[],
+        help='Name of ASG to run suspend actions on')
 
     post = parser.add_argument_group('Post Restore Commands')
     post.add_argument(
@@ -123,6 +133,16 @@ def setup_args():
         action='append',
         default=[],
         help='Name tag of instances to run post-restore commands on')
+    pre.add_argument(
+        '--post-restore-asg-resume-action',
+        action='append',
+        default=[],
+        help='An ASG action to resume post-restore')
+    pre.add_argument(
+        '--post-restore-asg-name',
+        action='append',
+        default=[],
+        help='Name of ASG to run resume actions on')
 
     args = parser.parse_args()
     if args.multi_az is None:
