@@ -5,6 +5,7 @@ import time
 
 def get_parameter(account, region, parameter_name):
     client = get_client(account, 'ssm', region)
+    logging.warning(f'Getting value for parameter {parameter_name}')
     response = client.get_parameter(Name=parameter_name, WithDecryption=True)
     return response['Parameter']['Value']
 

@@ -76,7 +76,7 @@ def setup_args():
     ssm.add_argument(
         '--ssm-security-group',
         action='append',
-        default=['shared.LAPIS_DB_SG'],
+        default=[],
         help='Name of SSM parameter containing the SG for the DB')
     ssm.add_argument(
         '--ssm-db-password',
