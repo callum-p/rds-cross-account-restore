@@ -27,6 +27,17 @@ def get_rds_instance_status(account, region, db_instance):
     return response['DBInstances'][0]['DBInstanceStatus']
 
 
+def wait_for_rds_instance_status(account, region, db_instance, wait_status):
+    status = None
+    last_status = None
+    while status != wait_status:
+        status = get_rds_instance_status(account, region, db_instance)
+        if last_status != status:
+            last_status = status
+            logging.warning(f'DB {db_instance} status: {status}')
+        time.sleep(5)
+
+
 def rds_snapshot_exists(account, region, snapshot_name):
     client = get_client(account, 'rds', region)
     try:
@@ -154,14 +165,7 @@ def restore_db_from_snapshot(account, region, snapshot_name, db_instance,
         CopyTagsToSnapshot=True)
 
     if wait is True:
-        status = None
-        last_status = None
-        while status != 'available':
-            status = get_rds_instance_status(account, region, db_instance)
-            if last_status != status:
-                last_status = status
-                logging.warning(f'DB {db_instance} status: {status}')
-            time.sleep(5)
+        wait_for_rds_instance_status(account, region, db_instance, 'available')
 
 
 def modify_db_instance(account, region, db_instance, db_security_groups=None,
@@ -189,27 +193,14 @@ def modify_db_instance(account, region, db_instance, db_security_groups=None,
     time.sleep(10)
 
     if wait is True:
-        status = None
-        last_status = None
-        while status != 'available':
-            status = get_rds_instance_status(account, region, db_instance)
-            if last_status != status:
-                last_status = status
-                logging.warning(f'DB {db_instance} status: {status}')
-            time.sleep(5)
+        wait_for_rds_instance_status(account, region, db_instance, 'available')
 
 
 def reboot_db_instance(account, region, db_instance, wait=False):
     client = get_client(account, 'rds', region)
+    wait_for_rds_instance_status(account, region, db_instance, 'available')
     logging.warning(f'Rebooting DB instance {db_instance}...')
     client.reboot_db_instance(DBInstanceIdentifier=db_instance)
     time.sleep(10)
     if wait is True:
-        status = None
-        last_status = None
-        while status != 'available':
-            status = get_rds_instance_status(account, region, db_instance)
-            if last_status != status:
-                last_status = status
-                logging.warning(f'DB {db_instance} status: {status}')
-            time.sleep(5)
+        wait_for_rds_instance_status(account, region, db_instance, 'available')
